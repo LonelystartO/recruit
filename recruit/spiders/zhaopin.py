@@ -11,6 +11,7 @@ class ZhaopinSpider(scrapy.Spider):
     web_frontend = 'http://sou.zhaopin.com/jobs/searchresult.ashx?bj=160000&sj=864&jl=%E6%B7%B1%E5%9C%B3&p=1'
     android_url = 'http://sou.zhaopin.com/jobs/searchresult.ashx?bj=160000& sj=2039&jl=%E6%B7%B1%E5%9C%B3&sm=0&p=1'
     internet_url = 'http://sou.zhaopin.com/jobs/searchresult.ashx?bj=160000&jl=%E6%B7%B1%E5%9C%B3&isadv=0&sg=5f6e91cebcee4fdc81c4e14b97066c07&p=1'
+
     start_urls = [internet_url]
 
     # name = 'dd'
@@ -21,22 +22,18 @@ class ZhaopinSpider(scrapy.Spider):
         self.currentPage = 1
         self.totalPage = 90
         self.count = 0;
-        process={}
-        for i in range(1,91):
-            process[i] = {
-                'index':0,
-                'total':0,
-            }
-        self.process = process
+        self.total = 0;
     def parse(self, response):
+
         print('currentPage',self.currentPage)
         print('totalPage',self.totalPage)
         item = RecruitItem()
         lis = response.xpath('//td[@class="zwmc"]/div/a/@href')
         # print('len of lif :',lis.extract())
         li_len = len(lis)
+        self.total += li_len
         current_page = self.currentPage
-        self.process[current_page]['total'] = li_len
+
         print('li_len',li_len)
         if li_len == 0:
             print('reload')
@@ -62,9 +59,8 @@ class ZhaopinSpider(scrapy.Spider):
 
     def fetch_data(self,response):
         current_page = self.currentPage - 1
-        print('进度测试', self.process)
+        print('------- 总数据量为%d-------'%self.total)
         # print('当前页',current_page)
-        self.process[current_page]['index'] += 1
         item = RecruitItem()
         item['name'] = response.xpath('//div[@class="top-fixed-box"]/div/div/h1/text()').extract()[0]
         item['pay'] = response.xpath('//div[@class="terminalpage-left"]/ul/li[1]/strong/text()').extract()[0].split('元')[0]
@@ -72,12 +68,13 @@ class ZhaopinSpider(scrapy.Spider):
         item['experience'] = response.xpath('//div[@class="terminalpage-left"]/ul/li[5]/strong/text()').extract()[0]
         item['min_edu'] = response.xpath('//div[@class="terminalpage-left"]/ul/li[6]/strong/text()').extract()[0]
         item['person'] = response.xpath('//div[@class="terminalpage-left"]/ul/li[7]/strong/text()').extract()[0]
+        item['position'] = response.xpath('//div[@class="terminalpage-left"]/ul/li[8]/strong/a/text()').extract()[0]
         item['com_scale'] = response.xpath('//div[@class="terminalpage-right"]/div/ul/li[1]/strong/text()').extract()[0].split('人')[0]
         item['com_trade'] = response.xpath('//div[@class="terminalpage-right"]/div/ul/li[3]/strong/a/text()').extract()[0]
         item['com_property'] = response.xpath('//div[@class="terminalpage-right"]/div/ul/li[2]/strong/text()').extract()[0]
         item['page'] = self.currentPage - 1
         self.count +=1;
-        print('---------------------- total count%d ---------------'%self.count)
+        print('---------------------- scrapy count%d ---------------'%self.count)
         content = ''
         description = response.xpath('//div[@class="tab-inner-cont"][1]/p/text()')
         for i in description:

@@ -17,6 +17,7 @@ class RecruitItem(scrapy.Item):
     experience = scrapy.Field() #工作经验
     min_edu = scrapy.Field() #最低学历
     person = scrapy.Field() # 招聘人数
+    position = scrapy.Field() # 职位类型
     com_scale = scrapy.Field() # 公司规模
     com_trade = scrapy.Field() # 公司行业
     com_property = scrapy.Field() # 公司性质 ： 合资、民营
